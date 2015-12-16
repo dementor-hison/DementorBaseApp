@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">DementorLibraryStudio</string>
+    <string name="title_regist">그래픽인증 키설정</string>
+    <string name="title_auth">그래픽인증</string>
+    <string name="dialog_msg_need_regist">그래픽 키 설정이 되어있지 않습니다.\n인증화면으로 이동합니다.</string>
+    <string name="dialog_button_ok">확인</string>
+    <string name="dialog_button_cancel">종료</string>
+    <string name="toast_msg_regist_key_wrong">이미 선택한 키값입니다.</string>
+    <string name="button_prev">이전</string>
+    <string name="button_next">이체실행</string>
+
+    <string name="send_item_value">이체금액</string>
+    <string name="send_item_won">원</string>
+
+    <string name="preference_key_is_regist">isRegisted</string>
+    <string name="preference_key_lock_res_id">lockResId</string>
+    <string name="preference_key_key1_res_id">key1ResId</string>
+    <string name="preference_key_key2_res_id">key2ResId</string>
+    <string name="preference_key_key3_res_id">key3ResId</string>
+    <string name="preference_key_dummy_set">dummyImage</string>
+
+    <string name="preference_key_never_see_regist">never_see_regist</string>
+    <string name="preference_key_never_see_auth">never_see_auth</string>
+    <string name="target_piano">피아노</string>
+
+</resources>

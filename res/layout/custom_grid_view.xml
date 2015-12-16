@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <GridView
+        android:id="@+id/gvGridView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:drawingCacheQuality="low"
+        android:fadeScrollbars="false"
+        android:horizontalSpacing="5dp"
+        android:listSelector="@android:color/transparent"
+        android:numColumns="5"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="vertical"
+        android:scrollingCache="false"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="5dp"/>
+
+    <ImageView
+        android:id="@+id/ivScrollMore"
+        android:layout_width="65.5dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/bottom_arrow"/>
+
+    <kr.co.dementor.ui.SquareImageView
+        android:id="@+id/ivDrag"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:visibility="gone"/>
+
+</FrameLayout>

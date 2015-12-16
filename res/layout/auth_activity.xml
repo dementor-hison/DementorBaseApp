@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:top="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorf7f7f7"
+    android:orientation="vertical" >
+
+    <!-- height : 400px -->
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <kr.co.dementor.ui.TopView
+                android:id="@+id/authTopview"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                top:titleText="Default" />
+
+            <!-- middle height:304px -->
+
+            <include layout="@layout/auth_middle_layout" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:src="@color/colordcdcdc" />
+        </LinearLayout>
+
+        <!-- height:194px -->
+        <kr.co.dementor.ui.HintPopup
+            android:id="@+id/hintPopup"
+            android:layout_width="345.5dp"
+            android:layout_height="97.5dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="6.5dp"
+            android:background="@drawable/hint_back_center" />
+    </FrameLayout>
+
+    <kr.co.dementor.ui.CustomGridView
+        android:id="@+id/gvAuthCustomGridView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingBottom="15dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp" />
+
+    <!-- footer height:100px -->
+
+    <RelativeLayout
+        android:id="@+id/rlFooterKeyset"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@android:color/white" >
+
+        <Button
+            android:id="@+id/btAuthKeySetting"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/keysetting_sel"
+            android:gravity="center_vertical"
+            android:paddingLeft="15dp"
+            android:scaleType="fitXY"
+            android:text=" 키설정" />
+
+        <Button
+            android:id="@+id/btAuthIconSetting"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@android:color/transparent"
+            android:drawableRight="@drawable/iconset_sel"
+            android:gravity="center_vertical"
+            android:paddingRight="15dp"
+            android:scaleType="fitXY"
+            android:text="아이콘설정 " />
+    </RelativeLayout>
+
+</LinearLayout>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:top="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorf7f7f7"
+    android:orientation="vertical" >
+
+    <!-- height : 400px -->
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <kr.co.dementor.ui.TopView
+                android:id="@+id/registTopView"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                top:titleText="그래픽인증 키설정" />
+
+            <!-- middle height:304px -->
+
+            <include layout="@layout/register_middle_layout" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:src="@color/colordcdcdc" />
+        </LinearLayout>
+
+        <!-- height:194px -->
+
+        <kr.co.dementor.ui.HintPopup
+            android:id="@+id/hintPopup"
+            android:layout_width="345.5dp"
+            android:layout_height="97.5dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="6.5dp"
+            android:background="@drawable/hint_back_right" />
+    </FrameLayout>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/vpRegistCategoryItemPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>

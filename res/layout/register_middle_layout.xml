@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- middle  start  height:304px -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="122dp"
+    android:layout_marginBottom="15dp"
+    android:layout_marginTop="15dp"
+    android:background="@color/colorf7f7f7"
+    android:gravity="center"
+    android:orientation="horizontal" >
+
+    <!-- left side -->
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:id="@+id/ibRegistRefresh"
+            android:layout_width="193dp"
+            android:layout_height="50dp" >
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/vpRegistCategory"
+                android:layout_width="160dp"
+                android:layout_height="50dp"
+                android:layout_centerInParent="true" />
+
+            <ImageView
+                android:layout_width="66.5dp"
+                android:layout_height="50dp"
+                android:layout_alignParentLeft="true"
+                android:background="@drawable/cat_arrow_l" />
+
+            <ImageView
+                android:layout_width="66.5dp"
+                android:layout_height="50dp"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/cat_arrow_r" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tvGuideText1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.카테고리 선택"
+            android:textSize="18dp" />
+
+        <TextView
+            android:id="@+id/tvGuideText2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2.카테고리 선택"
+            android:textSize="18dp" />
+    </LinearLayout>
+
+    <!-- right width:274px -->
+    <FrameLayout
+        android:id="@+id/flRegistStatus"
+        android:layout_width="137dp"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true" >
+
+        <ImageView
+            android:id="@+id/ivRegistStatus"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:src="@drawable/list_regist_status" />
+
+        <ImageView
+            android:id="@+id/ivRegistStatusAnim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:src="@drawable/list_regist_status_anim" 
+            android:onClick="onClickShowHint"/>
+    </FrameLayout>
+</LinearLayout>

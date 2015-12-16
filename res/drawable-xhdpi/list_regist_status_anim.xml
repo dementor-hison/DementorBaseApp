@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@drawable/progress_00"
+          android:maxLevel="0" />
+
+    <item android:drawable="@drawable/progress_01"
+          android:maxLevel="1" />
+
+    <item android:drawable="@drawable/progress_02"
+          android:maxLevel="2" />
+
+    <item android:drawable="@drawable/progress_03"
+          android:maxLevel="3" />
+</level-list>

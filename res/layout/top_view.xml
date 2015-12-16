@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:layout_centerHorizontal="true"
+    android:background="@color/colorf7f7f7" >
+
+    <FrameLayout
+        android:id="@+id/flTopBack"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:onClick="onTopClick">
+
+        <ImageButton
+            android:layout_width="10.5dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center"
+            android:duplicateParentState="true"
+            android:background="@drawable/top_arrow_sel" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvTopTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:textColor="@color/color888888"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:typeface="normal" />
+
+    <FrameLayout
+        android:id="@+id/flTopRight"
+        android:layout_width="34dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true" >
+
+        <ImageButton
+            android:id="@+id/ibTopHelp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/top_quest_sel" 
+            android:onClick="onTopClick"/>
+
+        <ImageButton
+            android:id="@+id/ibTopConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/top_ok_sel" 
+            android:onClick="onTopClick"/>
+    </FrameLayout>
+
+    <ImageButton
+        android:id="@+id/ibTopRefresh"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_toLeftOf="@id/flTopRight"
+        android:background="@drawable/top_refresh_sel"
+        android:onClick="onTopClick" />
+
+</RelativeLayout>
