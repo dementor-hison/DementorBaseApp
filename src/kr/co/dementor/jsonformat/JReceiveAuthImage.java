@@ -4,20 +4,20 @@ import java.util.ArrayList;
 
 public class JReceiveAuthImage
 {
-	private ArrayList<Data> DATA;
+	public Data DATA = null;
 	
-	private String code;
+	public String code = null;
 	
 	public class Data
 	{
-		private String level;
-		private String servertime;
-		private String maxfailcnt;
-		private ArrayList<IconData> icons;
+		public String level = null;
+		public String servertime = null;
+		public String maxfailcnt = null;
+		public ArrayList<IconData> icons = null;
 	}
 	
 	public class IconData
 	{
-		private String iconurl;
+		public String iconurl;
 	}
 }

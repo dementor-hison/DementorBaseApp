@@ -1,21 +1,19 @@
 package kr.co.dementor.jsonformat;
 
-import java.util.ArrayList;
-
-
 public class JReceiveAuthData
 {
-	private ArrayList<Data> data;
+	public Data data = null;
 	
-	private String code;
+	public String code = null;
 	
 	public class Data
 	{
-		private String authCode;
-		private String sessionID;
-		private String compid;
-		private String ssoSid;
-		private String logInType;
-		private String userid;	
+		public String authCode = null;
+		public String sessionID = null;
+		public String compid = null;
+		public String ssoSid = null;
+		public String logInType = null;
+		public String userid = null;	
 	}
+	
 }

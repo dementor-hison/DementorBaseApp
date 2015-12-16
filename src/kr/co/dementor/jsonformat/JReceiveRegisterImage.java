@@ -5,23 +5,30 @@ import java.util.ArrayList;
 
 public class JReceiveRegisterImage
 {
-	private String message;
+	public String message = null;
 	
-	private ArrayList<Data> data;
+	public Data data = null;
 	
-	private String code;
+	public String code = null;
 	
 	public class Data
 	{
-		private String categoryid;
-		private String categoryname;
-		private String iconzip;
-		private ArrayList<IconData> iconitem;
+		public String categoryzip = null;
+		public ArrayList<CategoryData> category = null;
+	}
+	
+	public class CategoryData
+	{
+		public String categoryid = null;
+		public String categoryname = null;
+		public String iconzip = null;
+		public ArrayList<IconData> iconitem = null;
 	}
 	
 	public class IconData
 	{
-		private String iconid;
-		private String iconname;
+		public String iconid = null;
+		public String iconname = null;
+		public String iconurl = null;
 	}
 }

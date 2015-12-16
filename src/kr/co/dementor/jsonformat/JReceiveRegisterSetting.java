@@ -1,16 +1,14 @@
 package kr.co.dementor.jsonformat;
 
-import java.util.ArrayList;
-
 
 public class JReceiveRegisterSetting
 {	
-	private ArrayList<Data> data;
+	public Data data = null;
 	
-	private String code;
+	public String code = null;
 	
 	public class Data
 	{
-		private String otk;
+		public String otk = null;
 	}
 }

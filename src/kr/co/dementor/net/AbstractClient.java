@@ -1,52 +1,79 @@
 package kr.co.dementor.net;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import org.apache.http.NameValuePair;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import kr.co.dementor.common.Defines;
 import kr.co.dementor.common.LogTrace;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 
 abstract public class AbstractClient
 {
 	private OnReceiveDementorListener receiveDementorListener = null;
-	private DementorTask currentTask = null;
+	private OnDementorErrorListener dementorErrorListener = null;
+	private DementorJsonTask jsonDataTask = null;
 
 	/**
 	 * @return JsonString
 	 */
-	abstract String makeParams();
+	abstract void OnReceiveJsonString(String result);
 
-	abstract Object main();
+	abstract String makeJsonData();
 
 	public void start()
 	{
-		currentTask = new DementorTask();
-		currentTask.execute(makeParams(), Defines.RequestAction.ACTION_LIST.getUrl());
+		jsonDataTask = new DementorJsonTask();
+		jsonDataTask.execute(makeJsonData(), Defines.RequestAction.ACTION_LIST.getUrl());
 	}
 
 	/**
@@ -68,96 +95,243 @@ abstract public class AbstractClient
 
 	public static interface OnReceiveDementorListener
 	{
-		public void onRecieveDementor(AbstractClient client, JsonObject response, String err, String errorInfo);
+		public void onRecieveDementor(AbstractClient client, JSONObject response, String err, String errorInfo);
 	}
 
-	private class DementorTask extends AsyncTask<String, Integer, JsonObject>
+	public static interface OnDementorErrorListener
+	{
+		public void onRecieveDementor(AbstractClient client, JSONObject response, String err, String errorInfo);
+	}
+
+	private class DementorJsonTask extends AsyncTask<String, Void, Void>
 	{
 		@Override
-		protected JsonObject doInBackground(String... params)
+		protected Void doInBackground(String... params)
 		{
-			String path = Defines.DEFAULT_HOST + "/" + params[1];
-			LogTrace.d("connect to " + path);
-			URL url = null;
-			HttpURLConnection conn = null;
+			String originData = params[0];
+			String action = params[1];
+
+			String url = Defines.DEFAULT_HOST + "/" + action;
+			LogTrace.d("connect to " + url);
+
+			String encodeData = encodeData(originData);
+
+			HttpResponse response = sendPost(url, encodeData);
+
+			HttpEntity resEntity = response.getEntity();
+
+			String receivedEncodeData = null;
 			try
 			{
-				url = new URL(path);
+				receivedEncodeData = EntityUtils.toString(resEntity);
+				LogTrace.d("receivedEncodeData : " + receivedEncodeData);
 			}
-			catch (MalformedURLException e)
+			catch (ParseException e)
 			{
 				e.printStackTrace();
-			}
-
-			try
-			{
-				conn = openConnection(conn, url);
-
-				LogTrace.d(params[0]);
-
-				String encodeData = encodeData(params[0]);
-
-				encodeData = "data=" + encodeData;
-
-				// 새로운 OutputStream에 요청할 OutputStream을 넣는다.
-				OutputStream out = conn.getOutputStream();
-
-				// 그리고 write메소드로 메시지로 작성된 파라미터정보를 바이트단위로 "UTF-8"로 인코딩해서 요청한다.
-				out.write(encodeData.getBytes("UTF-8"));
-
-				// 그리고 스트림의 버퍼를 비워준다.
-				out.flush();
-
-				// 스트림을 닫는다.
-				out.close();
-
-				conn.connect();
-				
-				int responseCode = conn.getResponseCode();
-				LogTrace.d("responseCode : " + responseCode);
-
-				if (responseCode == HttpURLConnection.HTTP_OK)
-				{
-					InputStream is = conn.getInputStream();
-
-					InputStreamReader reader = new InputStreamReader(is, "UTF-8");
-
-					BufferedReader br = new BufferedReader(reader, conn.getContentLength());
-
-					StringBuilder sb = new StringBuilder();
-
-					String buf = null;
-					while ((buf = br.readLine()) != null)
-					{
-						sb.append(buf);
-					}
-
-					br.close();
-
-					LogTrace.d("Result : " + sb.toString());
-				}
 			}
 			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
 
+			String receiveData = decodeData(receivedEncodeData);
+			LogTrace.d("receiveData : " + receiveData);
+
+			OnReceiveJsonString(receiveData);
+			// String extractData = extractJsonData(receiveData);
+			// LogTrace.d("extractData : " + receiveData);
+
 			return null;
 		}
+	}
 
-		private String encodeData(String jsonData)
+	private HttpResponse sendPost(String url, String encodeData)
+	{
+		ArrayList<NameValuePair> jsonDatas = new ArrayList<NameValuePair>();
+		jsonDatas.add(new BasicNameValuePair("data", encodeData));
+
+		HttpClient httpclient = getHttpClient();
+
+		HttpPost post = new HttpPost(url);
+
+		UrlEncodedFormEntity ent = null;
+		try
 		{
-			String SHA = null;
+			ent = new UrlEncodedFormEntity(jsonDatas, HTTP.UTF_8);
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
 
+		post.setEntity(ent);
+
+		HttpResponse response = null;
+
+		try
+		{
+			response = httpclient.execute(post);
+		}
+		catch (ClientProtocolException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		
+		int statusCode = response.getStatusLine().getStatusCode();
+		
+		if(hasError(statusCode) == true)
+		{
+			
+			return null;
+		}
+		
+		return response;
+	}
+
+	private boolean hasError(int statusCode)
+	{
+		switch (statusCode)
+		{
+		case HttpStatus.SC_HTTP_VERSION_NOT_SUPPORTED:
+			
+			break;
+
+		default:
+			break;
+		}
+		return false;
+	}
+
+	private String encodeData(String jsonData)
+	{
+		String sha = null;
+
+		try
+		{
+			sha = AES256Cipher.AES_Encode(jsonData);
+		}
+		catch (InvalidKeyException e)
+		{
+			e.printStackTrace();
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InvalidAlgorithmParameterException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IllegalBlockSizeException e)
+		{
+			e.printStackTrace();
+		}
+		catch (BadPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		LogTrace.d(sha);
+
+		return sha;
+	}
+
+	public String decodeData(String encodeData)
+	{
+		String decodeData = null;
+		try
+		{
+			decodeData = AES256Cipher.AES_Decode(encodeData);
+		}
+		catch (InvalidKeyException e)
+		{
+			e.printStackTrace();
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InvalidAlgorithmParameterException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IllegalBlockSizeException e)
+		{
+			e.printStackTrace();
+		}
+		catch (BadPaddingException e)
+		{
+			e.printStackTrace();
+		}
+
+		return decodeData;
+	}
+
+	HttpClient getHttpClient()
+	{
+		KeyStore trustStore = null;
+		try
+		{
+			trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		}
+		catch (KeyStoreException e)
+		{
+			e.printStackTrace();
+		}
+		try
+		{
+			trustStore.load(null, null);
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+		catch (CertificateException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		HttpParams params = new BasicHttpParams();
+
+		HttpConnectionParams.setConnectionTimeout(params, 15 * 1000);
+		HttpConnectionParams.setSoTimeout(params, 15 * 1000);
+		HttpConnectionParams.setSocketBufferSize(params, 8192);
+		// HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+		// HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
+
+		SchemeRegistry registry = new SchemeRegistry();
+		if (Defines.DEFAULT_HOST.startsWith("https"))
+		{
+			SSLSocketFactory sf = null;
 			try
 			{
-				SHA = AES256Cipher.AES_Encode(jsonData);
+				sf = new SFSSLSocketFactory(trustStore);
 			}
-			catch (InvalidKeyException e)
-			{
-				e.printStackTrace();
-			}
-			catch (UnsupportedEncodingException e)
+			catch (KeyManagementException e)
 			{
 				e.printStackTrace();
 			}
@@ -165,85 +339,26 @@ abstract public class AbstractClient
 			{
 				e.printStackTrace();
 			}
-			catch (NoSuchPaddingException e)
+			catch (KeyStoreException e)
 			{
 				e.printStackTrace();
 			}
-			catch (InvalidAlgorithmParameterException e)
+			catch (UnrecoverableKeyException e)
 			{
 				e.printStackTrace();
 			}
-			catch (IllegalBlockSizeException e)
-			{
-				e.printStackTrace();
-			}
-			catch (BadPaddingException e)
-			{
-				e.printStackTrace();
-			}
-			LogTrace.d(SHA);
 
-			return SHA;
+			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+
+			registry.register(new Scheme("https", sf, Defines.DEFAULT_PORT));
 		}
-
-		private HttpURLConnection openConnection(HttpURLConnection conn, URL url)
+		else
 		{
-			try
-			{
-				// 해당 주소의 페이지로 접속을 하고, 단일 HTTP 접속을 하기위해 캐스트한다.
-				conn = (HttpURLConnection) url.openConnection();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-			conn.setConnectTimeout(Defines.DEFAULT_TIMEOUT);
-			conn.setReadTimeout(Defines.DEFAULT_TIMEOUT);
-			try
-			{
-				// POST방식으로 요청한다.( 기본값은 GET )
-				conn.setRequestMethod("POST");
-			}
-			catch (ProtocolException e)
-			{
-				e.printStackTrace();
-			}
-			// 요청 헤더를 정의한다.( 원래 Content-Length값을 넘겨주어야하는데 넘겨주지 않아도 되는것이 이상하다. )
-			conn.setRequestProperty("Content-Type", "application/json");
-			conn.setRequestProperty("Accept", "application/json");
-			conn.setUseCaches(false);
-			// InputStream으로 서버로 부터 응답 헤더와 메시지를 읽어들이겠다는 옵션을 정의한다.
-			conn.setDoInput(true);
-			// OutputStream으로 POST 데이터를 넘겨주겠다는 옵션을 정의한다.
-			conn.setDoOutput(true);
-			
-			return conn;
+			registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), Defines.DEFAULT_PORT));
 		}
 
-		@Override
-		protected void onCancelled()
-		{
-			super.onCancelled();
-		}
+		ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
 
-		@Override
-		protected void onPostExecute(JsonObject result)
-		{
-			super.onPostExecute(result);
-		}
-
-		@Override
-		protected void onPreExecute()
-		{
-			super.onPreExecute();
-		}
-
-		@Override
-		protected void onProgressUpdate(Integer... values)
-		{
-			super.onProgressUpdate(values);
-		}
-
+		return new DefaultHttpClient(ccm, params);
 	}
-
 }
