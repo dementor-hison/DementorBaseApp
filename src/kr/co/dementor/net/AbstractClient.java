@@ -355,31 +355,35 @@ abstract public class AbstractClient
 		}
 		catch (InvalidKeyException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_DECODING_INVALID_KEY, e.getMessage(), "InvalidKeyException");
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_DECODING_UNSUPPORTED_ENCODING, e.getMessage(), "UnsupportedEncodingException");
 		}
 		catch (NoSuchAlgorithmException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_DECODING_NO_SUCH_ALGORITHM, e.getMessage(), "NoSuchAlgorithmException");
 		}
 		catch (NoSuchPaddingException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_DECODING_NO_SUCH_PADDING, e.getMessage(), "NoSuchPaddingException");
 		}
 		catch (InvalidAlgorithmParameterException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_DECODING_INVALID_ALGORITHM_PARAM, e.getMessage(), "InvalidAlgorithmParameterException");
 		}
 		catch (IllegalBlockSizeException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_DECODING_ILLEGAL_BLOCK_SIZE, e.getMessage(), "IllegalBlockSizeException");
 		}
 		catch (BadPaddingException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_DECODING_BAD_PADDING, e.getMessage(), "BadPaddingException");
+		}
+		if(result == null)
+		{
+			completeListener.onError(DementorError.ERROR_DECODING_UNKONWN, null, "encoding result is null");
 		}
 		return result;
 	}
@@ -392,11 +396,10 @@ abstract public class AbstractClient
 		{
 			trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 		}
-		catch (KeyStoreException e1)
+		catch (KeyStoreException e)
 		{
-			e1.printStackTrace();
+			completeListener.onError(DementorError.ERROR_KEYSTORE_INSTANSE, e.getMessage(), "KeyStoreException getInstanse Fail");
 		}
-
 		
 		try
 		{
@@ -404,15 +407,15 @@ abstract public class AbstractClient
 		}
 		catch (NoSuchAlgorithmException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_KEYSTORE_NO_SUCH_ALGORITHM, e.getMessage(), "NoSuchAlgorithmException");
 		}
 		catch (CertificateException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_KEYSTORE_CERTIFICATION, e.getMessage(), "CertificateException");
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_KEYSTORE_UNKNOWN, e.getMessage(), "IOException");
 		}
 		
 		HttpParams params = new BasicHttpParams();

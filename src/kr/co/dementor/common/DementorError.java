@@ -1,5 +1,6 @@
 package kr.co.dementor.common;
 
+
 public class DementorError
 {
 	// encoding 실패
@@ -21,5 +22,11 @@ public class DementorError
 	static public final int ERROR_DECODING_INVALID_ALGORITHM_PARAM = ERROR_DECODING_NO_SUCH_ALGORITHM + 1;
 	static public final int ERROR_DECODING_ILLEGAL_BLOCK_SIZE = ERROR_DECODING_INVALID_ALGORITHM_PARAM + 1;
 	static public final int ERROR_DECODING_BAD_PADDING = ERROR_DECODING_ILLEGAL_BLOCK_SIZE + 1;	
-	
+
+	//getHttpClient 시 KeyStore생성 실
+	static public final int ERROR_KEYSTORE_UNKNOWN = 202000;
+	static public final int ERROR_KEYSTORE_INSTANSE = ERROR_KEYSTORE_UNKNOWN + 1;
+	static public final int ERROR_KEYSTORE_NO_SUCH_ALGORITHM = ERROR_KEYSTORE_INSTANSE + 1;
+	static public final int ERROR_KEYSTORE_CERTIFICATION = ERROR_KEYSTORE_NO_SUCH_ALGORITHM + 1;
+		
 }
