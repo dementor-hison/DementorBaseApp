@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.SocketException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
@@ -27,6 +26,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import kr.co.dementor.common.Defines;
+import kr.co.dementor.common.DementorError;
 import kr.co.dementor.common.LogTrace;
 
 import org.apache.http.HttpEntity;
@@ -63,6 +63,10 @@ abstract public class AbstractClient
 	OnCompleteListener completeListener = null;
 
 	private DementorJsonTask jsonDataTask = null;
+
+	private String errorCode = null;
+	private String errorExtra = null;
+	private String errorMessage = null;
 
 	abstract void main();
 
@@ -103,7 +107,7 @@ abstract public class AbstractClient
 	{
 		public void onComplete(Object result);
 
-		public void onError(String errorCode, String extra, String message);
+		public void onError(int errorCode, String extra, String message);
 	}
 
 	HashMap<String, Bitmap> getFileFromServer(String serverPath)
@@ -294,7 +298,6 @@ abstract public class AbstractClient
 		return response;
 	}
 
-	// TODO :
 	private boolean hasError(int statusCode)
 	{
 		return statusCode == HttpStatus.SC_OK ? false : true;
@@ -309,36 +312,40 @@ abstract public class AbstractClient
 		}
 		catch (InvalidKeyException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENCODING_INVALID_KEY, e.getMessage(), "InvalidKeyException");
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENCODING_UNSUPPORTED_ENCODING, e.getMessage(), "UnsupportedEncodingException");
 		}
 		catch (NoSuchAlgorithmException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENCODING_NO_SUCH_ALGORITHM, e.getMessage(), "NoSuchAlgorithmException");
 		}
 		catch (NoSuchPaddingException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENCODING_NO_SUCH_PADDING, e.getMessage(), "NoSuchPaddingException");
 		}
 		catch (InvalidAlgorithmParameterException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENCODING_INVALID_ALGORITHM_PARAM, e.getMessage(), "InvalidAlgorithmParameterException");
 		}
 		catch (IllegalBlockSizeException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENCODING_ILLEGAL_BLOCK_SIZE, e.getMessage(), "IllegalBlockSizeException");
 		}
 		catch (BadPaddingException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENCODING_BAD_PADDING, e.getMessage(), "BadPaddingException");
+		}
+		if(result == null)
+		{
+			completeListener.onError(DementorError.ERROR_ENCODING_UNKONWN, null, "encoding result is null");
 		}
 		
 		return result;
 	}
-
+	
 	public String decodeData(String encodeData)
 	{
 		String result = null;
