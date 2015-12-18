@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
@@ -63,9 +64,7 @@ abstract public class AbstractClient
 
 	private DementorJsonTask jsonDataTask = null;
 
-	abstract void main() throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, KeyManagementException, UnrecoverableKeyException,
-			ClientProtocolException, KeyStoreException, CertificateException, DementorException;
+	abstract void main();
 
 	abstract String makeJsonData();
 
@@ -107,8 +106,7 @@ abstract public class AbstractClient
 		public void onError(String errorCode, String extra, String message);
 	}
 
-	HashMap<String, Bitmap> getFileFromServer(String serverPath) throws KeyManagementException, UnrecoverableKeyException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException
+	HashMap<String, Bitmap> getFileFromServer(String serverPath)
 	{
 		File file = null;
 
@@ -169,9 +167,7 @@ abstract public class AbstractClient
 		return unZip(file);
 	}
 
-	String getDataFromServer(String action) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, KeyManagementException,
-			UnrecoverableKeyException, ClientProtocolException, KeyStoreException, CertificateException, DementorException
+	String getDataFromServer(String action)
 	{
 		String originData = makeJsonData();
 
@@ -182,7 +178,8 @@ abstract public class AbstractClient
 
 		if (encodeData == null)
 		{
-			throw new DementorException("11111", null, "Encoding Fail");
+			LogTrace.e("Encode Fail");
+			return null;
 		}
 		
 		HttpResponse response = sendPost(url, encodeData);
@@ -208,7 +205,8 @@ abstract public class AbstractClient
 		
 		if (receiveData == null)
 		{
-			throw new DementorException("22222", null, "Decoding Fail");
+			LogTrace.e("Decode Fail");
+			return null;
 		}
 
 		return receiveData;
@@ -218,74 +216,14 @@ abstract public class AbstractClient
 	{
 		@Override
 		protected Void doInBackground(String... params)
-		{
-			try
-			{
-				main();
-			}
-			// encode, decodeException START
-			catch (InvalidKeyException e)
-			{
-				e.printStackTrace();
-			}
-			catch (UnsupportedEncodingException e)
-			{
-				e.printStackTrace();
-			}
-			catch (NoSuchAlgorithmException e)
-			{
-				e.printStackTrace();
-			}
-			catch (NoSuchPaddingException e)
-			{
-				e.printStackTrace();
-			}
-			catch (InvalidAlgorithmParameterException e)
-			{
-				e.printStackTrace();
-			}
-			catch (IllegalBlockSizeException e)
-			{
-				e.printStackTrace();
-			}
-			catch (BadPaddingException e)
-			{
-				e.printStackTrace();
-			}
-			// encode, decodeException END
-
-			catch (KeyManagementException e)
-			{
-				e.printStackTrace();
-			}
-			catch (UnrecoverableKeyException e)
-			{
-				e.printStackTrace();
-			}
-			catch (ClientProtocolException e)
-			{
-				e.printStackTrace();
-			}
-			catch (KeyStoreException e)
-			{
-				e.printStackTrace();
-			}
-			catch (CertificateException e)
-			{
-				e.printStackTrace();
-			}
-			catch (DementorException e)
-			{
-				e.printStackTrace();
-				LogTrace.e("Error code : " + e.getErrorCode() + " , extra : " + e.getExtraInfo() + " , message : " + e.getMessage());
-			}
-
+		{	
+			main();
+			
 			return null;
 		}
 	}
 
-	private HttpResponse sendPost(String url, String encodeData) throws UnsupportedEncodingException, ClientProtocolException, DementorException,
-			KeyManagementException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException
+	private HttpResponse sendPost(String url, String encodeData)
 	{
 		ArrayList<NameValuePair> jsonDatas = new ArrayList<NameValuePair>();
 		jsonDatas.add(new BasicNameValuePair("data", encodeData));
@@ -296,7 +234,14 @@ abstract public class AbstractClient
 
 		UrlEncodedFormEntity ent = null;
 
-		ent = new UrlEncodedFormEntity(jsonDatas, HTTP.UTF_8);
+		try
+		{
+			ent = new UrlEncodedFormEntity(jsonDatas, HTTP.UTF_8);
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
 
 		post.setEntity(ent);
 
@@ -306,10 +251,33 @@ abstract public class AbstractClient
 		{
 			response = httpclient.execute(post);
 		}
+		catch (ClientProtocolException e)
+		{
+			e.printStackTrace();
+		}
+		catch (java.net.SocketException e)
+		{
+			e.printStackTrace();
+		}
+		catch (java.net.SocketTimeoutException e)
+		{
+			e.printStackTrace();
+		}
+		catch (java.net.ProtocolException e)
+		{
+			e.printStackTrace();
+		}
+		catch (org.apache.http.NoHttpResponseException e)
+		{
+			e.printStackTrace();
+		}
+		catch (org.apache.http.conn.ConnectTimeoutException e)
+		{
+			e.printStackTrace();
+		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
-			throw new DementorException("200000", "http status code : " + null, "IOException");
 		}
 		
 		int statusCode = HttpStatus.SC_OK;
@@ -320,7 +288,7 @@ abstract public class AbstractClient
 
 		if (hasError(statusCode) == true)
 		{
-			throw new DementorException("200000", "http status code : " + statusCode, "errormessage");
+			return null;
 		}
 
 		return response;
@@ -332,48 +300,145 @@ abstract public class AbstractClient
 		return statusCode == HttpStatus.SC_OK ? false : true;
 	}
 
-	private String encodeData(String jsonData) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+	private String encodeData(String jsonData)
 	{
-		return AES256Cipher.AES_Encode(jsonData);
+		String result = null;
+		try
+		{
+			result = AES256Cipher.AES_Encode(jsonData);
+		}
+		catch (InvalidKeyException e)
+		{
+			e.printStackTrace();
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InvalidAlgorithmParameterException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IllegalBlockSizeException e)
+		{
+			e.printStackTrace();
+		}
+		catch (BadPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		
+		return result;
 	}
 
-	public String decodeData(String encodeData) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+	public String decodeData(String encodeData)
 	{
-		return AES256Cipher.AES_Decode(encodeData);
+		String result = null;
+		try
+		{
+			result = AES256Cipher.AES_Decode(encodeData);
+		}
+		catch (InvalidKeyException e)
+		{
+			e.printStackTrace();
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+		catch (NoSuchPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InvalidAlgorithmParameterException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IllegalBlockSizeException e)
+		{
+			e.printStackTrace();
+		}
+		catch (BadPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		return result;
 	}
 
-	HttpClient getHttpClient() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, KeyManagementException,
-			UnrecoverableKeyException
+	HttpClient getHttpClient()
 	{
 		KeyStore trustStore = null;
 
-		trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		try
+		{
+			trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		}
+		catch (KeyStoreException e1)
+		{
+			e1.printStackTrace();
+		}
 
+		
 		try
 		{
 			trustStore.load(null, null);
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+		catch (CertificateException e)
+		{
+			e.printStackTrace();
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
-
+		
 		HttpParams params = new BasicHttpParams();
 
 		HttpConnectionParams.setConnectionTimeout(params, 15 * 1000);
 		HttpConnectionParams.setSoTimeout(params, 15 * 1000);
 		HttpConnectionParams.setSocketBufferSize(params, 8192);
-		// HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-		// HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
 
 		SchemeRegistry registry = new SchemeRegistry();
 		if (Defines.DEFAULT_HOST.startsWith("https"))
 		{
 			SSLSocketFactory sf = null;
 
-			sf = new SFSSLSocketFactory(trustStore);
+			try
+			{
+				sf = new SFSSLSocketFactory(trustStore);
+			}
+			catch (KeyManagementException e)
+			{
+				e.printStackTrace();
+			}
+			catch (UnrecoverableKeyException e)
+			{
+				e.printStackTrace();
+			}
+			catch (NoSuchAlgorithmException e)
+			{
+				e.printStackTrace();
+			}
+			catch (KeyStoreException e)
+			{
+				e.printStackTrace();
+			}
 
 			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 

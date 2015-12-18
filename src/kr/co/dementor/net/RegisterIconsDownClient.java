@@ -1,20 +1,6 @@
 package kr.co.dementor.net;
 
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.HashMap;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
-import org.apache.http.client.ClientProtocolException;
 
 import kr.co.dementor.common.Defines;
 import kr.co.dementor.common.DementorUtil;
@@ -70,9 +56,7 @@ public class RegisterIconsDownClient extends AbstractClient
 	}
 
 	@Override
-	void main() throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, KeyManagementException, UnrecoverableKeyException,
-			ClientProtocolException, KeyStoreException, CertificateException, DementorException
+	void main()
 	{
 		String result = getDataFromServer(Defines.RequestAction.ACTION_LIST.getUrl());
 
