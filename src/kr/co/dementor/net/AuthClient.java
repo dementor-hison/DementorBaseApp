@@ -11,7 +11,7 @@ public class AuthClient extends AbstractClient
 	}
 
 	@Override
-	void OnReceiveJsonString(String result)
+	void main()
 	{
 		// TODO Auto-generated method stub
 		

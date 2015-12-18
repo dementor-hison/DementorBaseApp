@@ -1,6 +1,6 @@
 package kr.co.dementor.jsonformat;
 
-public class JReceiveAuthData
+public class ReceiveAuthData
 {
 	public Data data = null;
 	

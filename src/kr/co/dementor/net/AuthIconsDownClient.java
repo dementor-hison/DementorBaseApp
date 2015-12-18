@@ -9,8 +9,9 @@ public class AuthIconsDownClient extends AbstractClient
 		return null;
 	}
 
+
 	@Override
-	void OnReceiveJsonString(String result)
+	void main()
 	{
 		// TODO Auto-generated method stub
 		

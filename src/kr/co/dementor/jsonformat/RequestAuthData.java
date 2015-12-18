@@ -1,6 +1,6 @@
 package kr.co.dementor.jsonformat;
 
-public class JRequestAuthData
+public class RequestAuthData
 {
 	public String userid = null;
 	public String appid = null;

@@ -2,7 +2,7 @@ package kr.co.dementor.jsonformat;
 
 import java.util.ArrayList;
 
-public class JReceiveAuthImage
+public class ReceiveAuthImage
 {
 	public Data DATA = null;
 	

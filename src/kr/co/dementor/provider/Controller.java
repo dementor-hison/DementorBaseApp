@@ -3,8 +3,8 @@ package kr.co.dementor.provider;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import kr.co.dementor.jsonformat.JReceiveAuthData;
-import kr.co.dementor.jsonformat.JReceiveRegisterSetting;
+import kr.co.dementor.jsonformat.ReceiveAuthData;
+import kr.co.dementor.jsonformat.ReceiveRegisterSetting;
 import kr.co.dementor.ui.AuthActivity;
 import kr.co.dementor.ui.RegisterActivity;
 
@@ -83,9 +83,9 @@ public class Controller {
          * 쓸까말까 고민중...
          */
 
-        public void onDementorAuthFinished(JReceiveAuthData receiveData);
+        public void onDementorAuthFinished(ReceiveAuthData receiveData);
         
-        public void onDementorRegFinished(JReceiveRegisterSetting receiveData);
+        public void onDementorRegFinished(ReceiveRegisterSetting receiveData);
 
         public void onBack(Activity activity);
     }

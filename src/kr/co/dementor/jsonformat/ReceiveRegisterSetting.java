@@ -1,7 +1,7 @@
 package kr.co.dementor.jsonformat;
 
 
-public class JReceiveRegisterSetting
+public class ReceiveRegisterSetting
 {	
 	public Data data = null;
 	

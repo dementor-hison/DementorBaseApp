@@ -2,7 +2,7 @@ package kr.co.dementor.common;
 
 import java.io.File;
 
-import kr.co.dementor.jsonformat.JReceiveRegisterImage;
+import kr.co.dementor.jsonformat.ReceiveRegisterImage;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -104,24 +104,24 @@ public class DementorUtil
 	public static void classToLog(Object src)
 	{
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String log =  gson.toJson(src).toString();
-		int maxLogSize = 1000;
-		for(int i = 0; i <= log.length() / maxLogSize; i++) {
-		    int start = i * maxLogSize;
-		    int end = (i+1) * maxLogSize;
-		    end = end > log.length() ? log.length() : end;
-		    LogTrace.d(log.substring(start, end));
+		String log = gson.toJson(src).toString();
+		int maxLogSize = 2000;
+		for (int i = 0; i <= log.length() / maxLogSize; i++)
+		{
+			int start = i * maxLogSize;
+			int end = (i + 1) * maxLogSize;
+			end = end > log.length() ? log.length() : end;
+			LogTrace.d(log.substring(start, end));
 		}
-		
 	}
-	
+
 	public static String prettyPrintingJsonString(String src)
 	{
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		
+
 		JsonElement element = gson.fromJson(src, JsonElement.class);
-		
+
 		return gson.toJson(element);
-		
+
 	}
 }
