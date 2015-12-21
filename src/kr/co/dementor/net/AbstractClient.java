@@ -4,10 +4,12 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
@@ -33,6 +35,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -40,6 +43,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -112,6 +116,62 @@ abstract public class AbstractClient
 
 	HashMap<String, Bitmap> getFileFromServer(String serverPath)
 	{
+		HttpGet httpget = new HttpGet(serverPath);
+
+		HttpClient httpclient = getHttpClient();
+
+		if (httpclient == null)
+		{
+			LogTrace.e("httpclient create fail");
+			return null;
+		}
+
+		HttpResponse response = null;
+		try
+		{
+			response = httpclient.execute(httpget);
+		}
+		catch (ClientProtocolException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_CLIENT_PROTOCOL, e.getMessage(), "ClientProtocolException");
+		}
+		catch (SocketTimeoutException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_SOCKET_TIMEOUT, e.getMessage(), "SocketTimeoutException");
+		}
+		catch (ConnectTimeoutException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_CONNECT_TIMEOUT, e.getMessage(), "ConnectTimeoutException");
+		}
+		catch (NoHttpResponseException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_NO_HTTP_RESPONSE, e.getMessage(), "NoHttpResponseException");
+		}
+		catch (MalformedURLException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_MALFORMED_URL, e.getMessage(), "MalformedURLException");
+		}
+		catch (IOException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_UNKNOWN, e.getMessage(), "IOException");
+		}
+		if (response == null)
+		{
+			LogTrace.e("No response");
+			return null;
+		}
+
+		int statusCode = response.getStatusLine().getStatusCode();
+
+		if (hasError(statusCode))
+		{
+			completeListener.onError(DementorError.ERROR_STATUS_CODE_ERROR, "statusCode : " + statusCode, " plz check statusCode");
+			LogTrace.e("Status code : " + statusCode);
+			return null;
+		}
+
+		HttpEntity entity = response.getEntity();
+
 		File file = null;
 
 		BufferedInputStream bis = null;
@@ -119,53 +179,63 @@ abstract public class AbstractClient
 
 		try
 		{
-			HttpGet httpget = new HttpGet(serverPath);
-
-			HttpClient httpclient = getHttpClient();
-
-			HttpResponse response = httpclient.execute(httpget);
-
-			int statusCode = response.getStatusLine().getStatusCode();
-
-			if (statusCode != HttpStatus.SC_OK)
-			{
-				LogTrace.w("ERROR connect!!! status code: " + statusCode);
-			}
-
-			HttpEntity entity = response.getEntity();
-
 			file = File.createTempFile("prefix", "extension");
+			LogTrace.d("Create temp file   path : " + file.getPath() + " , name : " + file.getName());
+		}
+		catch (IOException e)
+		{
+			completeListener.onError(DementorError.ERROR_CREATE_FILE, e.getMessage(), "IOException");
+		}
 
+		if (file == null)
+		{
+			LogTrace.e("create file error");
+			return null;
+		}
+
+		try
+		{
 			bis = new BufferedInputStream(entity.getContent());
+		}
+		catch (IllegalStateException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONTENTS_HAS_BEEN_CONSUMED, e.getMessage(), "IllegalStateException");
+		}
+		catch (IOException e)
+		{
+			completeListener.onError(DementorError.ERROR_GET_CONTENTS_DATA_FAIL, e.getMessage(), "IOException");
+		}
+		if (bis == null)
+		{
+			LogTrace.e("File inputStream error");
+			return null;
+		}
+		try
+		{
 			bos = new BufferedOutputStream(new FileOutputStream(file));
 
-			int inByte;
+			int inByte = 0;
+
 			while ((inByte = bis.read()) != -1)
 			{
 				bos.write(inByte);
 			}
+
+			bis.close();
+			bos.close();
+
 		}
-		catch (MalformedURLException e)
+		catch (FileNotFoundException e)
 		{
-			LogTrace.e(e.toString());
-			// this.failure("202200", null);
+			completeListener.onError(DementorError.ERROR_FILE_NOT_FOUND, e.getMessage(), "FileNotFoundException");
+			LogTrace.e("File not Found");
+			return null;
 		}
 		catch (IOException e)
 		{
-			LogTrace.e(e.toString());
-			// this.failure("202200", null);
-		}
-		finally
-		{
-			try
-			{
-				bis.close();
-				bos.close();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
+			completeListener.onError(DementorError.ERROR_FILE_WRITE_FAIL, e.getMessage(), "IOException");
+			LogTrace.e("File not Found");
+			return null;
 		}
 
 		return unZip(file);
@@ -185,7 +255,7 @@ abstract public class AbstractClient
 			LogTrace.e("Encode Fail");
 			return null;
 		}
-		
+
 		HttpResponse response = sendPost(url, encodeData);
 
 		HttpEntity resEntity = response.getEntity();
@@ -206,7 +276,7 @@ abstract public class AbstractClient
 		}
 
 		String receiveData = decodeData(receivedEncodeData);
-		
+
 		if (receiveData == null)
 		{
 			LogTrace.e("Decode Fail");
@@ -220,9 +290,9 @@ abstract public class AbstractClient
 	{
 		@Override
 		protected Void doInBackground(String... params)
-		{	
+		{
 			main();
-			
+
 			return null;
 		}
 	}
@@ -283,11 +353,11 @@ abstract public class AbstractClient
 		{
 			e.printStackTrace();
 		}
-		
+
 		int statusCode = HttpStatus.SC_OK;
-		if(response != null)
+		if (response != null)
 		{
-			statusCode = response.getStatusLine().getStatusCode();	
+			statusCode = response.getStatusLine().getStatusCode();
 		}
 
 		if (hasError(statusCode) == true)
@@ -338,14 +408,14 @@ abstract public class AbstractClient
 		{
 			completeListener.onError(DementorError.ERROR_ENCODING_BAD_PADDING, e.getMessage(), "BadPaddingException");
 		}
-		if(result == null)
+		if (result == null)
 		{
 			completeListener.onError(DementorError.ERROR_ENCODING_UNKONWN, null, "encoding result is null");
 		}
-		
+
 		return result;
 	}
-	
+
 	public String decodeData(String encodeData)
 	{
 		String result = null;
@@ -381,7 +451,7 @@ abstract public class AbstractClient
 		{
 			completeListener.onError(DementorError.ERROR_DECODING_BAD_PADDING, e.getMessage(), "BadPaddingException");
 		}
-		if(result == null)
+		if (result == null)
 		{
 			completeListener.onError(DementorError.ERROR_DECODING_UNKONWN, null, "encoding result is null");
 		}
@@ -400,7 +470,7 @@ abstract public class AbstractClient
 		{
 			completeListener.onError(DementorError.ERROR_KEYSTORE_INSTANSE, e.getMessage(), "KeyStoreException getInstanse Fail");
 		}
-		
+
 		try
 		{
 			trustStore.load(null, null);
@@ -417,11 +487,11 @@ abstract public class AbstractClient
 		{
 			completeListener.onError(DementorError.ERROR_KEYSTORE_UNKNOWN, e.getMessage(), "IOException");
 		}
-		
+
 		HttpParams params = new BasicHttpParams();
 
-		HttpConnectionParams.setConnectionTimeout(params, 15 * 1000);
-		HttpConnectionParams.setSoTimeout(params, 15 * 1000);
+		HttpConnectionParams.setConnectionTimeout(params, Defines.DEFAULT_TIMEOUT);
+		HttpConnectionParams.setSoTimeout(params, Defines.DEFAULT_TIMEOUT);
 		HttpConnectionParams.setSocketBufferSize(params, 8192);
 
 		SchemeRegistry registry = new SchemeRegistry();
@@ -435,19 +505,20 @@ abstract public class AbstractClient
 			}
 			catch (KeyManagementException e)
 			{
-				e.printStackTrace();
+				completeListener.onError(DementorError.ERROR_KEYSTORE_KEYMANAGEMENT, e.getMessage(),
+						"KeyManagementException..KeyIDConflict or KeyAuthorizationFailure ..");
 			}
 			catch (UnrecoverableKeyException e)
 			{
-				e.printStackTrace();
+				completeListener.onError(DementorError.ERROR_KEYSTORE_UNRECOVERABLE_KEY, e.getMessage(), "UnrecoverableKeyException");
 			}
 			catch (NoSuchAlgorithmException e)
 			{
-				e.printStackTrace();
+				completeListener.onError(DementorError.ERROR_KEYSTORE_NO_SUCH_ALGORITHM, e.getMessage(), "NoSuchAlgorithmException");
 			}
 			catch (KeyStoreException e)
 			{
-				e.printStackTrace();
+				completeListener.onError(DementorError.ERROR_KEYSTORE_UNKNOWN, e.getMessage(), "KeyStoreException");
 			}
 
 			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
@@ -484,7 +555,7 @@ abstract public class AbstractClient
 		}
 		catch (Exception e)
 		{
-			LogTrace.e(e.toString());
+			completeListener.onError(DementorError.ERROR_UNZIP_FAIL, e.getMessage(), "UnZIP fail");
 		}
 		finally
 		{
@@ -494,7 +565,7 @@ abstract public class AbstractClient
 			}
 			catch (IOException e)
 			{
-				e.printStackTrace();
+				completeListener.onError(DementorError.ERROR_UNZIP_FAIL, e.getMessage(), "File close Error");
 			}
 			// 임시파일 삭제
 			if (file != null && file.exists()) file.delete();

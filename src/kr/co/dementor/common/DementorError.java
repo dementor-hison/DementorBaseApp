@@ -23,10 +23,34 @@ public class DementorError
 	static public final int ERROR_DECODING_ILLEGAL_BLOCK_SIZE = ERROR_DECODING_INVALID_ALGORITHM_PARAM + 1;
 	static public final int ERROR_DECODING_BAD_PADDING = ERROR_DECODING_ILLEGAL_BLOCK_SIZE + 1;	
 
-	//getHttpClient 시 KeyStore생성 실
+	//getHttpClient 시 KeyStore생성 실패 
 	static public final int ERROR_KEYSTORE_UNKNOWN = 202000;
 	static public final int ERROR_KEYSTORE_INSTANSE = ERROR_KEYSTORE_UNKNOWN + 1;
 	static public final int ERROR_KEYSTORE_NO_SUCH_ALGORITHM = ERROR_KEYSTORE_INSTANSE + 1;
 	static public final int ERROR_KEYSTORE_CERTIFICATION = ERROR_KEYSTORE_NO_SUCH_ALGORITHM + 1;
-		
+	static public final int ERROR_KEYSTORE_KEYMANAGEMENT = ERROR_KEYSTORE_CERTIFICATION + 1;
+	static public final int ERROR_KEYSTORE_UNRECOVERABLE_KEY = ERROR_KEYSTORE_KEYMANAGEMENT + 1;
+	
+	//서버응답 에러 ..추후 세분화 필요. 404 error등등 
+	static public final int ERROR_STATUS_CODE_ERROR = 203000;
+	
+	//Connection Error
+	static public final int ERROR_CONNECTION_UNKNOWN = 204000;
+	static public final int ERROR_CONNECTION_CLIENT_PROTOCOL = ERROR_CONNECTION_UNKNOWN + 1;
+	static public final int ERROR_CONNECTION_SOCKET_TIMEOUT = ERROR_CONNECTION_CLIENT_PROTOCOL + 1;
+	static public final int ERROR_CONNECTION_CONNECT_TIMEOUT = ERROR_CONNECTION_SOCKET_TIMEOUT + 1;
+	static public final int ERROR_CONNECTION_NO_HTTP_RESPONSE = ERROR_CONNECTION_CONNECT_TIMEOUT + 1;
+	static public final int ERROR_CONNECTION_MALFORMED_URL = ERROR_CONNECTION_NO_HTTP_RESPONSE + 1;
+	
+	
+	//Data parsing error
+	static public final int ERROR_CREATE_FILE = 205000;
+	static public final int ERROR_FILE_NOT_FOUND = ERROR_CREATE_FILE + 1;
+	static public final int ERROR_FILE_WRITE_FAIL = ERROR_FILE_NOT_FOUND + 1;
+	static public final int ERROR_GET_CONTENTS_DATA_FAIL = ERROR_FILE_NOT_FOUND + 1;
+	static public final int ERROR_CONTENTS_HAS_BEEN_CONSUMED = ERROR_GET_CONTENTS_DATA_FAIL + 1;
+	static public final int ERROR_UNZIP_FAIL = ERROR_CONTENTS_HAS_BEEN_CONSUMED + 1;
+	
+	
+	
 }

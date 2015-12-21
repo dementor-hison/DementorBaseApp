@@ -76,6 +76,12 @@ public class RegisterIconsDownClient extends AbstractClient
 		String categoryZipUrl = receiveCategoryInfo.data.categoryzip;
 
 		HashMap<String, Bitmap> categoryMap = getFileFromServer(categoryZipUrl);
+		
+		if(categoryMap == null)
+		{
+			LogTrace.e("Not Ready category item");
+			return;
+		}
 
 		receiveCategoryInfo.setCategoryBitmap(categoryMap);
 
@@ -87,6 +93,12 @@ public class RegisterIconsDownClient extends AbstractClient
 			String iconZipUrl = categoryData.iconzip;
 
 			HashMap<String, Bitmap> imageMap = getFileFromServer(iconZipUrl);
+			
+			if(imageMap == null)
+			{
+				LogTrace.e("Not Ready Image item... categoryID : " + categoryData.categoryid);
+				return;
+			}
 
 			receiveCategoryInfo.setImageBitmap(imageMap, categoryData.categoryid);
 		}
