@@ -9,7 +9,6 @@ import android.view.View;
 
 public class ResourceLoader
 {
-
 	static public int getResourseIdByName(String name, String className, Context ctx)
 	{
 		return ctx.getResources().getIdentifier(name, className, ctx.getPackageName());

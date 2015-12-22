@@ -10,8 +10,23 @@ public class AuthClient extends AbstractClient
 		return null;
 	}
 
+
+	@Override
+	void preMain()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 	@Override
 	void main()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	void postMain()
 	{
 		// TODO Auto-generated method stub
 		

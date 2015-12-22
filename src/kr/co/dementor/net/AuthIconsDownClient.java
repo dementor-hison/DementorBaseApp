@@ -11,9 +11,24 @@ public class AuthIconsDownClient extends AbstractClient
 
 
 	@Override
+	void preMain()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	void main()
 	{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	void postMain()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 }

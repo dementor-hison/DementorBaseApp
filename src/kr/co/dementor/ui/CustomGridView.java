@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import kr.co.dementor.common.LogTrace;
 import kr.co.dementor.common.ResourceLoader;
+import kr.co.dementor.imagedata.IconData;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -18,239 +19,276 @@ import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 
-
 /**
  * Created by dementor1 on 15. 11. 4..
  */
-public class CustomGridView extends FrameLayout {
-    private GridView gridView = null;
+public class CustomGridView extends FrameLayout
+{
+	private GridView gridView = null;
 
-    private CustomGridViewAdapter gridViewAdapter = new CustomGridViewAdapter();
+	private CustomGridViewAdapter gridViewAdapter = new CustomGridViewAdapter();
 
-    private ImageView ivScrollMore = null;
+	private ImageView ivScrollMore = null;
 
-    private OnDragListener onCustomDragListener = null;
-    private OnItemClickListener onCustomItemClickListener = null;
+	private OnDragListener onCustomDragListener = null;
+	private OnItemClickListener onCustomItemClickListener = null;
 
-    private boolean isDragable = false;
+	private boolean isDragable = false;
 
-    private SquareImageView sivDragView = null;
-    private int selectedIconPosition = AdapterView.INVALID_POSITION;
-    private int targetIconPosition = AdapterView.INVALID_POSITION;
+	private SquareImageView sivDragView = null;
+	private int selectedIconPosition = AdapterView.INVALID_POSITION;
+	private int targetIconPosition = AdapterView.INVALID_POSITION;
 
-    private OnTouchListener onTouchListener = new OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            float x = event.getX();
-            float y = event.getY();
+	private OnTouchListener onTouchListener = new OnTouchListener()
+	{
+		@Override
+		public boolean onTouch(View v, MotionEvent event)
+		{
+			float x = event.getX();
+			float y = event.getY();
 
-            int position = gridView.pointToPosition((int) x, (int) y);
+			int position = gridView.pointToPosition((int) x, (int) y);
+
+			SquareImageView imageView = null;
+			IconData iconData = null;
+			
+			switch (event.getAction())
+			{
+			case MotionEvent.ACTION_DOWN:
+
+				if (position == AdapterView.INVALID_POSITION)
+				{
+					return false;
+				}
+
+				selectedIconPosition = position;
+
+				imageView = (SquareImageView) gridView.getChildAt(position);
+				
+				iconData = gridViewAdapter.getItem(position);
 
-            int resID = 0;
+				if (onCustomDragListener != null && isDragable)
+				{
+					onCustomDragListener.OnDragStart(selectedIconPosition, imageView, iconData);
 
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
+					makeImage(position, (int) x, (int) y);
+				}
 
-                    if (position == AdapterView.INVALID_POSITION) {
-                        return false;
-                    }
+				break;
+
+			case MotionEvent.ACTION_UP:
 
-                    selectedIconPosition = position;
+				if (onCustomDragListener != null && isDragable && selectedIconPosition != AdapterView.INVALID_POSITION
+						&& targetIconPosition != AdapterView.INVALID_POSITION)
+				{
+					imageView = (SquareImageView) gridView.getChildAt(targetIconPosition);
+
+					iconData = gridViewAdapter.getItem(position);
+					
+					onCustomDragListener.OnDragEnd(targetIconPosition, imageView, iconData);
 
-                    resID = (Integer) gridViewAdapter.getItem(selectedIconPosition);
+					selectedIconPosition = AdapterView.INVALID_POSITION;
 
-                    if (onCustomDragListener != null && isDragable) {
-                        onCustomDragListener.OnDragStart(selectedIconPosition, resID);
+					targetIconPosition = AdapterView.INVALID_POSITION;
+				}
 
-                        makeImage(position, (int) x, (int) y);
-                    }
+				Vibrator vib = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+				vib.vibrate(200);
 
-                    break;
+				removeImage();
 
-                case MotionEvent.ACTION_UP:
+				break;
 
-                    if (onCustomDragListener != null && isDragable && selectedIconPosition != AdapterView.INVALID_POSITION && targetIconPosition != AdapterView.INVALID_POSITION) {
-                        resID = (Integer) gridViewAdapter.getItem(targetIconPosition);
+			case MotionEvent.ACTION_MOVE:
 
-                        onCustomDragListener.OnDragEnd(targetIconPosition, resID);
+				if (onCustomDragListener != null && isDragable && selectedIconPosition != AdapterView.INVALID_POSITION)
+				{
+					targetIconPosition = position == AdapterView.INVALID_POSITION ? targetIconPosition : position;
 
-                        selectedIconPosition = AdapterView.INVALID_POSITION;
+					moveImage(x, y);
+				}
 
-                        targetIconPosition = AdapterView.INVALID_POSITION;
-                    }
+			default:
+				break;
+			}
 
-                    Vibrator vib = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
-                    vib.vibrate(200);
+			return false;
+		}
+	};
 
-                    removeImage();
+	private AdapterView.OnItemClickListener onItemClickListener = new AdapterView.OnItemClickListener()
+	{
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+		{
+			if (onCustomItemClickListener != null)
+			{
+				IconData iconData = gridViewAdapter.getItem(position);
+				
+				onCustomItemClickListener.OnItemClick(view, position, iconData);
+			}
+		}
+	};
 
-                    break;
+	private AbsListView.OnScrollListener onScrollListener = new AbsListView.OnScrollListener()
+	{
+		@Override
+		public void onScrollStateChanged(AbsListView view, int scrollState)
+		{
 
-                case MotionEvent.ACTION_MOVE:
+		}
 
-                    if (onCustomDragListener != null && isDragable && selectedIconPosition != AdapterView.INVALID_POSITION) {
-                        targetIconPosition = position == AdapterView.INVALID_POSITION ? targetIconPosition : position;
+		@Override
+		public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
+		{
+			if (firstVisibleItem + visibleItemCount >= totalItemCount)
+			{
+				ivScrollMore.setVisibility(ImageView.INVISIBLE);
+			}
+			else
+			{
+				ivScrollMore.setVisibility(ImageView.VISIBLE);
+			}
+		}
+	};
 
-                        moveImage(x, y);
-                    }
+	public CustomGridView(Context context)
+	{
+		super(context);
 
-                default:
-                    break;
-            }
+		createView(context);
+	}
 
-            return false;
-        }
-    };
+	public CustomGridView(Context context, AttributeSet attrs)
+	{
+		super(context, attrs);
 
-    private AdapterView.OnItemClickListener onItemClickListener = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            if (onCustomItemClickListener != null) {
-                int imageSrcId = (Integer) gridViewAdapter.getItem(position);
-                onCustomItemClickListener.OnItemClick(view, position, imageSrcId);
-            }
-        }
-    };
+		createView(context);
+	}
 
-    private AbsListView.OnScrollListener onScrollListener = new AbsListView.OnScrollListener() {
-        @Override
-        public void onScrollStateChanged(AbsListView view, int scrollState) {
+	public CustomGridView(Context context, AttributeSet attrs, int defStyleAttr)
+	{
+		super(context, attrs, defStyleAttr);
 
-        }
+		createView(context);
+	}
 
-        @Override
-        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-            if (firstVisibleItem + visibleItemCount >= totalItemCount) {
-                ivScrollMore.setVisibility(ImageView.INVISIBLE);
-            } else {
-                ivScrollMore.setVisibility(ImageView.VISIBLE);
-            }
-        }
-    };
+	private void makeImage(int position, int x, int y)
+	{
+		SquareImageView selectedItem = (SquareImageView) gridView.getChildAt(position);
 
+		if (selectedItem == null)
+		{
+			LogTrace.w("notFound item at position : " + position);
+			return;
+		}
 
-    public CustomGridView(Context context) {
-        super(context);
+		LayoutParams params = new LayoutParams((int) (selectedItem.getWidth() * 1.5f), (int) (selectedItem.getHeight() * 1.5f));
 
-        createView(context);
-    }
+		params.setMargins(x - sivDragView.getWidth() / 2, y - sivDragView.getHeight() / 2, 0, 0);
 
-    public CustomGridView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+		sivDragView.setLayoutParams(params);
 
-        createView(context);
-    }
+		Bitmap b = Bitmap.createBitmap(selectedItem.getMeasuredWidth(),
 
-    public CustomGridView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+		selectedItem.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
 
-        createView(context);
-    }
+		Canvas screenShotCanvas = new Canvas(b);
 
-    private void makeImage(int position, int x, int y) {
-        SquareImageView selectedItem = (SquareImageView) gridView.getChildAt(position);
+		selectedItem.draw(screenShotCanvas);
 
-        if (selectedItem == null) {
-            LogTrace.w("notFound item at position : " + position);
-            return;
-        }
+		sivDragView.setImageBitmap(b);
 
-        LayoutParams params = new LayoutParams((int) (selectedItem.getWidth() * 1.5f), (int) (selectedItem.getHeight() * 1.5f));
+		sivDragView.setVisibility(ImageView.VISIBLE);
+	}
 
-        params.setMargins(x - sivDragView.getWidth() / 2, y - sivDragView.getHeight() / 2, 0, 0);
+	private void moveImage(float x, float y)
+	{
+		LayoutParams params = (LayoutParams) sivDragView.getLayoutParams();
 
-        sivDragView.setLayoutParams(params);
+		params.setMargins((int) x - sivDragView.getWidth() / 2, (int) y - sivDragView.getHeight() / 2, 0, 0);
 
-        Bitmap b = Bitmap.createBitmap(selectedItem.getMeasuredWidth(),
+		sivDragView.setLayoutParams(params);
+	}
 
-                selectedItem.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+	private void removeImage()
+	{
+		sivDragView.setVisibility(ImageView.GONE);
+	}
 
-        Canvas screenShotCanvas = new Canvas(b);
+	private void createView(Context context)
+	{
+		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        selectedItem.draw(screenShotCanvas);
+		inflater.inflate(ResourceLoader.getResourseIdByName("custom_grid_view", "layout", context), this, true);
 
-        sivDragView.setImageBitmap(b);
+		gridView = (GridView) ResourceLoader.getViewByName("gvGridView", "id", this);
 
-        sivDragView.setVisibility(ImageView.VISIBLE);
-    }
+		sivDragView = (SquareImageView) ResourceLoader.getViewByName("ivDrag", "id", this);
 
-    private void moveImage(float x, float y) {
-        LayoutParams params = (LayoutParams) sivDragView.getLayoutParams();
+		ivScrollMore = (ImageView) ResourceLoader.getViewByName("ivScrollMore", "id", this);
 
-        params.setMargins((int) x - sivDragView.getWidth() / 2, (int) y - sivDragView.getHeight() / 2, 0, 0);
+		gridViewAdapter = new CustomGridViewAdapter();
 
-        sivDragView.setLayoutParams(params);
-    }
+		gridView.setAdapter(gridViewAdapter);
 
-    private void removeImage() {
-        sivDragView.setVisibility(ImageView.GONE);
-    }
+		gridView.setOnTouchListener(onTouchListener);
 
-    private void createView(Context context) {
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		gridView.setOnItemClickListener(onItemClickListener);
 
-        inflater.inflate(ResourceLoader.getResourseIdByName("custom_grid_view", "layout", context), this, true);
-        
-        gridView = (GridView) ResourceLoader.getViewByName("gvGridView", "id", this);
+		gridView.setOnScrollListener(onScrollListener);
+	}
 
-        sivDragView = (SquareImageView) ResourceLoader.getViewByName("ivDrag", "id", this);
+	public ArrayList<IconData> getGridViewItems()
+	{
+		return gridViewAdapter.getListItems();
+	}
 
-        ivScrollMore = (ImageView) ResourceLoader.getViewByName("ivScrollMore", "id", this);
+	public void setGridViewItems(ArrayList<IconData> list)
+	{
+		if (gridViewAdapter == null)
+		{
+			LogTrace.e("GridView adapter not set");
+			return;
+		}
 
-        gridViewAdapter = new CustomGridViewAdapter();
+		gridViewAdapter.setItemArrayList(list, true);
 
-        gridView.setAdapter(gridViewAdapter);
+		gridViewAdapter.notifyDataSetChanged();
+	}
 
-        gridView.setOnTouchListener(onTouchListener);
+	public void setOnDragListener(CustomGridView.OnDragListener listener)
+	{
+		onCustomDragListener = listener;
+	}
 
-        gridView.setOnItemClickListener(onItemClickListener);
+	public boolean isDragable()
+	{
+		return isDragable;
+	}
 
-        gridView.setOnScrollListener(onScrollListener);
-    }
+	public void setDragable(boolean isDragable)
+	{
+		this.isDragable = isDragable;
+	}
 
-    public ArrayList<Integer> getGridViewItems() {
-        return gridViewAdapter.getListItems();
-    }
+	public void setOnItemClickListener(CustomGridView.OnItemClickListener listener)
+	{
+		onCustomItemClickListener = listener;
+	}
 
-    public void setGridViewItems(ArrayList<Integer> listBitmaps) {
+	public interface OnDragListener
+	{
 
-        if (gridViewAdapter == null) {
-            LogTrace.e("GridView adapter not set");
-            return;
-        }
+		void OnDragStart(int position, SquareImageView dragImage, IconData iconData);
 
-        gridViewAdapter.setItemArrayList(listBitmaps);
+		void OnDragEnd(int position, SquareImageView targetImage, IconData iconData);
+	}
 
-        gridViewAdapter.notifyDataSetChanged();
-    }
+	public interface OnItemClickListener
+	{
+		void OnItemClick(View view, int position, IconData iconData);
 
-    public void setOnDragListener(CustomGridView.OnDragListener listener) {
-        onCustomDragListener = listener;
-    }
-
-    public boolean isDragable() {
-        return isDragable;
-    }
-
-    public void setDragable(boolean isDragable) {
-        this.isDragable = isDragable;
-    }
-
-    public void setOnItemClickListener(CustomGridView.OnItemClickListener listener) {
-        onCustomItemClickListener = listener;
-    }
-
-    public interface OnDragListener {
-
-        void OnDragStart(int position, int resId);
-
-        void OnDragEnd(int position, int resId);
-    }
-
-    public interface OnItemClickListener {
-
-        void OnItemClick(View view, int position, int imageSrcId);
-
-    }
+	}
 
 }

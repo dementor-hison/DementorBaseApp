@@ -8,8 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
@@ -35,15 +33,12 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.ParseException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -68,13 +63,13 @@ abstract public class AbstractClient
 
 	private DementorJsonTask jsonDataTask = null;
 
-	private String errorCode = null;
-	private String errorExtra = null;
-	private String errorMessage = null;
-
+	abstract String makeJsonData();
+	
+	abstract void preMain();
+	
 	abstract void main();
 
-	abstract String makeJsonData();
+	abstract void postMain();
 
 	public void start()
 	{
@@ -131,23 +126,31 @@ abstract public class AbstractClient
 		{
 			response = httpclient.execute(httpget);
 		}
-		catch (ClientProtocolException e)
+		catch (org.apache.http.client.ClientProtocolException e)
 		{
 			completeListener.onError(DementorError.ERROR_CONNECTION_CLIENT_PROTOCOL, e.getMessage(), "ClientProtocolException");
 		}
-		catch (SocketTimeoutException e)
+		catch (java.net.SocketTimeoutException e)
 		{
 			completeListener.onError(DementorError.ERROR_CONNECTION_SOCKET_TIMEOUT, e.getMessage(), "SocketTimeoutException");
 		}
-		catch (ConnectTimeoutException e)
+		catch (org.apache.http.conn.ConnectTimeoutException e)
 		{
 			completeListener.onError(DementorError.ERROR_CONNECTION_CONNECT_TIMEOUT, e.getMessage(), "ConnectTimeoutException");
 		}
-		catch (NoHttpResponseException e)
+		catch (org.apache.http.NoHttpResponseException e)
 		{
 			completeListener.onError(DementorError.ERROR_CONNECTION_NO_HTTP_RESPONSE, e.getMessage(), "NoHttpResponseException");
 		}
-		catch (MalformedURLException e)
+		catch (java.net.SocketException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_SOCKET, e.getMessage(), "SocketException");
+		}
+		catch (java.net.ProtocolException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_PROTOCOL, e.getMessage(), "ProtocolException");
+		}
+		catch (java.net.MalformedURLException e)
 		{
 			completeListener.onError(DementorError.ERROR_CONNECTION_MALFORMED_URL, e.getMessage(), "MalformedURLException");
 		}
@@ -258,6 +261,12 @@ abstract public class AbstractClient
 
 		HttpResponse response = sendPost(url, encodeData);
 
+		if (response == null)
+		{
+			LogTrace.e("No response");
+			return null;
+		}
+		
 		HttpEntity resEntity = response.getEntity();
 
 		String receivedEncodeData = null;
@@ -268,11 +277,11 @@ abstract public class AbstractClient
 		}
 		catch (ParseException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENTITY_PARSER, e.getMessage(), "ParseException");
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_ENTITY_PARSER, e.getMessage(), "IOException");
 		}
 
 		String receiveData = decodeData(receivedEncodeData);
@@ -293,6 +302,8 @@ abstract public class AbstractClient
 		{
 			main();
 
+			postMain();
+			
 			return null;
 		}
 	}
@@ -303,6 +314,12 @@ abstract public class AbstractClient
 		jsonDatas.add(new BasicNameValuePair("data", encodeData));
 
 		HttpClient httpclient = getHttpClient();
+		
+		if(httpclient == null)
+		{
+			LogTrace.e("generate Httpclient fail..");
+			return null;
+		}
 
 		HttpPost post = new HttpPost(url);
 
@@ -325,43 +342,50 @@ abstract public class AbstractClient
 		{
 			response = httpclient.execute(post);
 		}
-		catch (ClientProtocolException e)
+		catch (org.apache.http.client.ClientProtocolException e)
 		{
-			e.printStackTrace();
-		}
-		catch (java.net.SocketException e)
-		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_CONNECTION_CLIENT_PROTOCOL, e.getMessage(), "ClientProtocolException");
 		}
 		catch (java.net.SocketTimeoutException e)
 		{
-			e.printStackTrace();
-		}
-		catch (java.net.ProtocolException e)
-		{
-			e.printStackTrace();
-		}
-		catch (org.apache.http.NoHttpResponseException e)
-		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_CONNECTION_SOCKET_TIMEOUT, e.getMessage(), "SocketTimeoutException");
 		}
 		catch (org.apache.http.conn.ConnectTimeoutException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_CONNECTION_CONNECT_TIMEOUT, e.getMessage(), "ConnectTimeoutException");
+		}
+		catch (org.apache.http.NoHttpResponseException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_NO_HTTP_RESPONSE, e.getMessage(), "NoHttpResponseException");
+		}
+		catch (java.net.SocketException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_SOCKET, e.getMessage(), "SocketException");
+		}
+		catch (java.net.ProtocolException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_PROTOCOL, e.getMessage(), "ProtocolException");
+		}
+		catch (java.net.MalformedURLException e)
+		{
+			completeListener.onError(DementorError.ERROR_CONNECTION_MALFORMED_URL, e.getMessage(), "MalformedURLException");
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			completeListener.onError(DementorError.ERROR_CONNECTION_UNKNOWN, e.getMessage(), "IOException");
 		}
-
-		int statusCode = HttpStatus.SC_OK;
-		if (response != null)
+		if (response == null)
 		{
-			statusCode = response.getStatusLine().getStatusCode();
+			LogTrace.e("No response");
+			return null;
 		}
 
+		int statusCode = response.getStatusLine().getStatusCode();
+		
 		if (hasError(statusCode) == true)
 		{
+			completeListener.onError(DementorError.ERROR_STATUS_CODE_ERROR, "statusCode : " + statusCode, " plz check statusCode");
+			LogTrace.e("Status code : " + statusCode);
 			return null;
 		}
 
@@ -535,14 +559,14 @@ abstract public class AbstractClient
 		return new DefaultHttpClient(ccm, params);
 	}
 
-	private HashMap<String, Bitmap> unZip(File file)
+	private HashMap<String, Bitmap> unZip(File compressedfile)
 	{
 		ZipInputStream zin = null;
 		HashMap<String, Bitmap> map = new HashMap<String, Bitmap>();
 
 		try
 		{
-			zin = new ZipInputStream(new FileInputStream(file));
+			zin = new ZipInputStream(new FileInputStream(compressedfile));
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inSampleSize = 2;
 
@@ -568,7 +592,7 @@ abstract public class AbstractClient
 				completeListener.onError(DementorError.ERROR_UNZIP_FAIL, e.getMessage(), "File close Error");
 			}
 			// 임시파일 삭제
-			if (file != null && file.exists()) file.delete();
+			if (compressedfile != null && compressedfile.exists()) compressedfile.delete();
 		}
 
 		return map;

@@ -78,6 +78,23 @@ public class Defines
 		}
 	}
 
+	public enum RequestCmd
+	{
+		CMD_LIST("mlist"), CMD_SET("mkeyset"), CMD_KEY("mreqauthimgkey"), CMD_AUTH("mreqauth");
+
+		private String cmd;
+
+		private RequestCmd(String cmd)
+		{
+			this.cmd = cmd;
+		}
+
+		public String getCmd()
+		{
+			return this.cmd;
+		}
+	}
+	
 	public enum RequestAction
 	{
 		ACTION_LIST("mlist.do"), ACTION_KEY_SET("mkeyset.do"), ACTION_AUTH_IMAGE_KEY("mreqauthimgkey.do"), ACTION_AUTH("mreqauth.do");

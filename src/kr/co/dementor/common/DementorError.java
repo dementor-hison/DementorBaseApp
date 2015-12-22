@@ -41,6 +41,8 @@ public class DementorError
 	static public final int ERROR_CONNECTION_CONNECT_TIMEOUT = ERROR_CONNECTION_SOCKET_TIMEOUT + 1;
 	static public final int ERROR_CONNECTION_NO_HTTP_RESPONSE = ERROR_CONNECTION_CONNECT_TIMEOUT + 1;
 	static public final int ERROR_CONNECTION_MALFORMED_URL = ERROR_CONNECTION_NO_HTTP_RESPONSE + 1;
+	static public final int ERROR_CONNECTION_SOCKET = ERROR_CONNECTION_MALFORMED_URL + 1;
+	static public final int ERROR_CONNECTION_PROTOCOL = ERROR_CONNECTION_SOCKET + 1;
 	
 	
 	//Data parsing error
@@ -49,7 +51,8 @@ public class DementorError
 	static public final int ERROR_FILE_WRITE_FAIL = ERROR_FILE_NOT_FOUND + 1;
 	static public final int ERROR_GET_CONTENTS_DATA_FAIL = ERROR_FILE_NOT_FOUND + 1;
 	static public final int ERROR_CONTENTS_HAS_BEEN_CONSUMED = ERROR_GET_CONTENTS_DATA_FAIL + 1;
-	static public final int ERROR_UNZIP_FAIL = ERROR_CONTENTS_HAS_BEEN_CONSUMED + 1;
+	static public final int ERROR_ENTITY_PARSER = ERROR_CONTENTS_HAS_BEEN_CONSUMED + 1;
+	static public final int ERROR_UNZIP_FAIL = ERROR_ENTITY_PARSER + 1;
 	
 	
 	

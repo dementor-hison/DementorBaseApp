@@ -5,9 +5,11 @@ import java.util.HashMap;
 import kr.co.dementor.common.Defines;
 import kr.co.dementor.common.DementorUtil;
 import kr.co.dementor.common.LogTrace;
-import kr.co.dementor.jsonformat.ReceiveRegisterImage;
-import kr.co.dementor.jsonformat.ReceiveRegisterImage.CategoryData;
-import kr.co.dementor.jsonformat.RequestRegisterImage;
+import kr.co.dementor.imagedata.CategoryData;
+import kr.co.dementor.jsonformat.ReceiveRegisterImageInfo;
+import kr.co.dementor.jsonformat.RequestRegisterImageInfo;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 
 import com.google.gson.Gson;
@@ -17,19 +19,30 @@ import com.google.gson.JsonParser;
 
 public class RegisterIconsDownClient extends AbstractClient
 {
-	private RequestRegisterImage requestParam = null;
-	private ReceiveRegisterImage receiveCategoryInfo = null;
+	private Context context = null;
+	private RequestRegisterImageInfo requestParam = null;
+	private ReceiveRegisterImageInfo receiveCategoryInfo = null;
+	private ProgressDialog progressDialog = null;
 
+	public RegisterIconsDownClient(Context context)
+	{
+		this.context = context;
+	}
+	
+	public RegisterIconsDownClient(Context context, RequestRegisterImageInfo data)
+	{
+		this.context = context;
+		this.requestParam = data;
+	}
+	
+	public void setRequestData(RequestRegisterImageInfo data)
+	{
+		requestParam = data;
+	}
+	
 	@Override
 	String makeJsonData()
 	{
-		// test
-		requestParam = new RequestRegisterImage();
-		requestParam.appid = "appid";
-		requestParam.cmd = "mlist";
-		requestParam.devtype = "1";
-		requestParam.userid = "test";
-
 		if (requestParam == null)
 		{
 			LogTrace.e("requestParam not set!!... plz call setRequestData");
@@ -48,21 +61,28 @@ public class RegisterIconsDownClient extends AbstractClient
 		LogTrace.d(addJson.toString());
 
 		return addJson.toString();
-	}
+	}	
 
-	public void setRequestData(RequestRegisterImage data)
+	@Override
+	void preMain()
 	{
-		requestParam = data;
+		progressDialog  = ProgressDialog.show(context, null, "Data Loading...");
 	}
-
+	
 	@Override
 	void main()
 	{
 		String result = getDataFromServer(Defines.RequestAction.ACTION_LIST.getUrl());
+		
+		if(result == null)
+		{
+			LogTrace.e("getData from Server FAIL");
+			return;
+		}
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		receiveCategoryInfo = gson.fromJson(result, ReceiveRegisterImage.class);
+		receiveCategoryInfo = gson.fromJson(result, ReceiveRegisterImageInfo.class);
 
 		DementorUtil.classToLog(receiveCategoryInfo);
 
@@ -103,5 +123,19 @@ public class RegisterIconsDownClient extends AbstractClient
 			receiveCategoryInfo.setImageBitmap(imageMap, categoryData.categoryid);
 		}
 	}
+	
+	@Override
+	void postMain()
+	{
+		completeListener.onComplete(receiveCategoryInfo);
+		
+		if(progressDialog != null && progressDialog.isShowing())
+		{
+			progressDialog.dismiss();
+		}
+		
+		receiveCategoryInfo = null;
+	}
+	
 
 }
