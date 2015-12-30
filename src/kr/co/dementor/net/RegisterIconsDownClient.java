@@ -111,7 +111,7 @@ public class RegisterIconsDownClient extends AbstractClient
 			CategoryData categoryData = receiveCategoryInfo.data.category.get(categoryIndex);
 
 			String iconZipUrl = categoryData.iconzip;
-
+			
 			HashMap<String, Bitmap> imageMap = getFileFromServer(iconZipUrl);
 			
 			if(imageMap == null)
@@ -127,7 +127,12 @@ public class RegisterIconsDownClient extends AbstractClient
 	@Override
 	void postMain()
 	{
-		completeListener.onComplete(receiveCategoryInfo);
+		if(completeListener != null)
+		{
+			LogTrace.d("START");
+			completeListener.onComplete(receiveCategoryInfo);
+			LogTrace.d("END");
+		}
 		
 		if(progressDialog != null && progressDialog.isShowing())
 		{

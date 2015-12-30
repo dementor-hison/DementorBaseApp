@@ -1,8 +1,8 @@
 package kr.co.dementor.ui;
 
 import kr.co.dementor.adapter.CategoryIconAdapter;
-import kr.co.dementor.adapter.CategoryMenuAdapter;
 import kr.co.dementor.adapter.CategoryIconAdapter.OnSelectListener;
+import kr.co.dementor.adapter.CategoryMenuAdapter;
 import kr.co.dementor.common.Defines;
 import kr.co.dementor.common.Defines.RegistStatus;
 import kr.co.dementor.common.LogTrace;
@@ -84,6 +84,7 @@ public class RegisterActivity extends FragmentActivity
 		hintPopup.setVisibility(View.GONE);
 
 		vpRegistCategory = (ViewPager) ResourceLoader.getViewByName("vpRegistCategory", "id", this);
+		vpRegistCategory.setOffscreenPageLimit(4);
 		vpRegistCategory.addOnPageChangeListener(onPageChangeListener);
 
 		vpRegistCategoryItemPager = (ViewPager) ResourceLoader.getViewByName("vpRegistCategoryItemPager", "id", this);
@@ -94,8 +95,10 @@ public class RegisterActivity extends FragmentActivity
 		vpRegistCategory.setAdapter(categoryMenuAdapter);
 		
 		categoryIconAdapter = new CategoryIconAdapter(getSupportFragmentManager());
+		
 		categoryIconAdapter.setOnSelectListener(onSelectListener);
-		vpRegistCategory.setAdapter(categoryIconAdapter);
+		
+		vpRegistCategoryItemPager.setAdapter(categoryIconAdapter);
 		
 	}
 
@@ -108,8 +111,17 @@ public class RegisterActivity extends FragmentActivity
 	OnPageChangeListener onPageChangeListener = new OnPageChangeListener()
 	{
 		@Override
-		public void onPageSelected(int arg0)
+		public void onPageSelected(int index)
 		{
+			if(vpRegistCategory.getCurrentItem() != index)
+			{
+				vpRegistCategory.setCurrentItem(index, true);	
+			}
+			
+			if(vpRegistCategoryItemPager.getCurrentItem() != index)
+			{
+				vpRegistCategoryItemPager.setCurrentItem(index, true);	
+			}
 		}
 
 		@Override
@@ -120,8 +132,7 @@ public class RegisterActivity extends FragmentActivity
 		@Override
 		public void onPageScrollStateChanged(int index)
 		{
-			vpRegistCategory.setCurrentItem(index, true);
-			vpRegistCategoryItemPager.setCurrentItem(index, true);
+			
 		}
 	};
 
@@ -190,6 +201,19 @@ public class RegisterActivity extends FragmentActivity
 			categoryMenuAdapter.setCategoryList(receiveRegisterImageData.data.category);
 			
 			categoryIconAdapter.setIconList(receiveRegisterImageData.data.category);
+			
+			categoryMenuAdapter.notifyDataSetChanged();
+			
+			categoryIconAdapter.notifyDataSetChanged();
+			
+			if(receiveRegisterImageData.data.category.size() > 2)
+			{
+				vpRegistCategory.setCurrentItem(1);
+			}
+			
+			int margin = (int)(vpRegistCategory.getWidth() * -0.66);
+			
+			vpRegistCategory.setPageMargin(margin);
 		}
 	};
 

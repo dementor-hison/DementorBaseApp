@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 public class CategoryMenuAdapter extends FragmentStatePagerAdapter
 {
 	private ArrayList<CategoryData> categoryData = null;
+	private FragmentCategoryMenu[] fragments;
 	
 	public CategoryMenuAdapter(FragmentManager fm)
 	{
@@ -28,7 +29,11 @@ public class CategoryMenuAdapter extends FragmentStatePagerAdapter
 	@Override
 	public Fragment getItem(int index)
 	{
-		return new FragmentCategoryMenu(categoryData.get(index));
+		if(fragments[index] == null)
+		{
+			fragments[index] = new FragmentCategoryMenu(categoryData.get(index)); 
+		}
+		return fragments[index];
 	}
 
 	@Override
@@ -41,6 +46,7 @@ public class CategoryMenuAdapter extends FragmentStatePagerAdapter
 	public void setCategoryList(ArrayList<CategoryData> category)
 	{
 		this.categoryData = category;
+		fragments = new FragmentCategoryMenu[categoryData.size()];
 	}
 	
 	private class FragmentCategoryMenu extends Fragment
@@ -61,7 +67,7 @@ public class CategoryMenuAdapter extends FragmentStatePagerAdapter
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 		{
-			View view = inflater.inflate(ResourceLoader.getResourseIdByName("item_category_menu", "layout", getContext()), container, true);
+			View view = inflater.inflate(ResourceLoader.getResourseIdByName("item_category_menu", "layout", getContext()), null);
 			
 			imageView  = (SquareImageView)ResourceLoader.getViewByName("coverflowItemImage", "id", view);
 			

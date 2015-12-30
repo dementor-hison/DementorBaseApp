@@ -302,10 +302,17 @@ abstract public class AbstractClient
 		{
 			main();
 
-			postMain();
-			
 			return null;
 		}
+
+		@Override
+		protected void onPostExecute(Void result)
+		{
+			postMain();
+			
+			super.onPostExecute(result);
+		}
+		
 	}
 
 	private HttpResponse sendPost(String url, String encodeData)
@@ -567,13 +574,14 @@ abstract public class AbstractClient
 		try
 		{
 			zin = new ZipInputStream(new FileInputStream(compressedfile));
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inSampleSize = 2;
+//			BitmapFactory.Options options = new BitmapFactory.Options();
+//			options.inSampleSize = 2;
 
 			ZipEntry zipEntry;
 			while ((zipEntry = zin.getNextEntry()) != null)
 			{
-				map.put(zipEntry.getName(), BitmapFactory.decodeStream(zin, null, options));
+//				map.put(zipEntry.getName(), BitmapFactory.decodeStream(zin, null, options));
+				map.put(zipEntry.getName(), BitmapFactory.decodeStream(zin));
 				zin.closeEntry();
 			}
 		}

@@ -220,13 +220,13 @@ public class CustomGridView extends FrameLayout
 	{
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-		inflater.inflate(ResourceLoader.getResourseIdByName("custom_grid_view", "layout", context), this, true);
+		View customGridView = inflater.inflate(ResourceLoader.getResourseIdByName("custom_grid_view", "layout", context), this, true);
 
-		gridView = (GridView) ResourceLoader.getViewByName("gvGridView", "id", this);
+		gridView = (GridView) ResourceLoader.getViewByName("gvGridView", "id", customGridView);
 
-		sivDragView = (SquareImageView) ResourceLoader.getViewByName("ivDrag", "id", this);
+		sivDragView = (SquareImageView) ResourceLoader.getViewByName("ivDrag", "id", customGridView);
 
-		ivScrollMore = (ImageView) ResourceLoader.getViewByName("ivScrollMore", "id", this);
+		ivScrollMore = (ImageView) ResourceLoader.getViewByName("ivScrollMore", "id", customGridView);
 
 		gridViewAdapter = new CustomGridViewAdapter();
 

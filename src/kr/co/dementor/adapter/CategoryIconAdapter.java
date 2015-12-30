@@ -2,6 +2,7 @@ package kr.co.dementor.adapter;
 
 import java.util.ArrayList;
 
+import kr.co.dementor.common.LogTrace;
 import kr.co.dementor.common.ResourceLoader;
 import kr.co.dementor.imagedata.CategoryData;
 import kr.co.dementor.imagedata.IconData;
@@ -19,6 +20,7 @@ public class CategoryIconAdapter extends FragmentStatePagerAdapter
 {
 	private ArrayList<CategoryData> categoryData = null;
 	private OnSelectListener selectedListener = null;
+	private FragmentCategoryIconGrid[] fragments;
 
 	public CategoryIconAdapter(FragmentManager fm)
 	{
@@ -28,7 +30,12 @@ public class CategoryIconAdapter extends FragmentStatePagerAdapter
 	@Override
 	public Fragment getItem(int index)
 	{
-		return new FragmentCategoryIconGrid(categoryData.get(index));
+		if(fragments[index] == null)
+		{
+			fragments[index] = new FragmentCategoryIconGrid(categoryData.get(index)); 
+		}
+		
+		return fragments[index];
 	}
 
 	@Override
@@ -40,6 +47,7 @@ public class CategoryIconAdapter extends FragmentStatePagerAdapter
 	public void setIconList(ArrayList<CategoryData> categorydata)
 	{
 		this.categoryData  = categorydata;
+		fragments = new FragmentCategoryIconGrid[categoryData.size()];
 	}
 	
 	public void setOnSelectListener(OnSelectListener selectListener)
@@ -70,15 +78,18 @@ public class CategoryIconAdapter extends FragmentStatePagerAdapter
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 		{
-			View view = inflater.inflate(ResourceLoader.getResourseIdByName("item_category_list", "layout", getContext()), container, true);
+			View view = inflater.inflate(ResourceLoader.getResourseIdByName("item_category_list", "layout", getContext()), null);
 			
-			customGridView  = (CustomGridView)ResourceLoader.getViewByName("gvGridView", "id", view);
+			customGridView  = (CustomGridView)ResourceLoader.getViewByName("cgvGridView", "id", view);
 			
 			customGridView.setOnItemClickListener(onItemClickListener);
 			
 			customGridView.setDragable(false);
 			
 			customGridView.setGridViewItems(categoryData.iconitem);
+			
+			LogTrace.d("Create CustomGridView Fragment");
+			LogTrace.d(" categoryData.iconitem size : " + categoryData.iconitem.size());
 			
 			return view;
 		}

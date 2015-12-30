@@ -107,7 +107,7 @@ public class DementorController
 		configBuilder.imageDownloader(new SSLImageDownloader(context, Defines.DEFAULT_TIMEOUT, Defines.DEFAULT_TIMEOUT));
 		configBuilder.threadPriority(Thread.MAX_PRIORITY);
 		configBuilder.defaultDisplayImageOptions(defaultOptions);
-		configBuilder.diskCacheExtraOptions(120, 120, null);
+		configBuilder.diskCacheExtraOptions(100, 100, null);
 		configBuilder.diskCache(new UnlimitedDiskCache(context.getCacheDir()));
 
 		configBuilder.diskCacheFileNameGenerator(new Md5FileNameGenerator());

@@ -5,7 +5,7 @@
     android:orientation="vertical" >
 
     <kr.co.dementor.ui.CustomGridView
-        android:id="@+id/gvGridView"
+        android:id="@+id/cgvGridView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingBottom="15dp"
